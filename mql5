@@ -1,0 +1,164 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                  Gann Square of 9 |
+//|                                     Developed by Forex Robot Easy |
+//|                                              www.forexroboteasy.com|
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|        Gann Square of 9 Indicator for Forex Trading Environment    |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                     Indicator Initialization                      |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+#property copyright 'Forex Robot Easy Team'
+#property link      'www.forexroboteasy.com'
+#property version   '1.00'
+#property description 'Gann Square of 9 Indicator for Forex Trading'
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                       Indicator Parameters                        |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+input int squareSize = 10; // Square size of Gann Square of 9
+input int levels = 10; // Number of levels to display
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                       Indicator Variables                         |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+double priceLevels[];
+datetime timeLevels[];
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                         Indicator Data                            |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+int OnInit()
+{
+   ArrayResize(priceLevels, levels);
+   ArrayResize(timeLevels, levels);
+   
+   for (int i = 0; i < levels; i++)
+   {
+      priceLevels[i] = CalculatePriceLevel(i);
+      timeLevels[i] = CalculateTimeLevel(i);
+   }
+   
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                 Calculate Price Level Function                    |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+double CalculatePriceLevel(int level)
+{
+   double squareRoot = MathSqrt(level * squareSize);
+   return NormalizePrice(squareRoot);
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                  Normalize Price Function                         |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+double NormalizePrice(double price)
+{
+   return NormalizeDouble(price, Digits);
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                  Calculate Time Level Function                    |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+datetime CalculateTimeLevel(int level)
+{
+   return TimeCurrent() + level * squareSize * 60;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                    Trading Functions                              |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+void EnterTrade(double price, datetime time)
+{
+   // Add your logic for entering a trade here
+}
+
+void ExitTrade(double price, datetime time)
+{
+   // Add your logic for exiting a trade here
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                      Indicator Calculation                        |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+   int limit = rates_total - prev_calculated;
+   if (limit <= 0)
+      return(0);
+   
+   for (int i = limit; i < rates_total; i++)
+   {
+      double currentPrice = close[i];
+      datetime currentTime = time[i];
+      
+      for (int j = 0; j < levels; j++)
+      {
+         double levelPrice = priceLevels[j];
+         datetime levelTime = timeLevels[j];
+         
+         if (currentPrice >= levelPrice && currentTime >= levelTime)
+         {
+            EnterTrade(levelPrice, levelTime);
+            ExitTrade(levelPrice, levelTime);
+         }
+      }
+   }
+   
+   return(rates_total);
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                          Indicator Deinitialization               |
+//|                                                                  |
+//+------------------------------------------------------------------+
+
+void OnDeinit(const int reason)
+{
+   // Add your deinitialization logic here
+}
